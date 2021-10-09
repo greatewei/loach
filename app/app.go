@@ -2,15 +2,21 @@ package app
 
 import (
 	"errors"
+	"flag"
 	"fmt"
 	"github.com/greatewei/loach/color"
 	"os"
 	"strings"
 )
 
+// GlobalFlag is global parameter
 type GlobalFlag struct {
 	Version bool
+	Color   bool
+	Help    bool
 }
+
+// App is global instance
 type App struct {
 	base
 	Name       string
@@ -23,6 +29,7 @@ type App struct {
 	Commands   map[string]*Command
 }
 
+// Init is initialize the application
 func Init(fns ...func(app *App)) *App {
 	app := &App{
 		Commands: map[string]*Command{},
@@ -32,19 +39,27 @@ func Init(fns ...func(app *App)) *App {
 		},
 		GlobalFlag: &GlobalFlag{},
 	}
-	// 初始化全局参数
 	app.InitGlobalFlag()
-	// 初始化app
 	for _, fn := range fns {
 		fn(app)
 	}
 	return app
 }
 
+// InitGlobalFlag is init global flag
 func (app *App) InitGlobalFlag() {
+	// Version
 	app.Flag.BoolVar(&app.GlobalFlag.Version, "v", false, "Display version")
+	app.Flag.BoolVar(&app.GlobalFlag.Version, "version", false, "Display version")
+	// Color
+	app.Flag.BoolVar(&app.GlobalFlag.Color, "c", true, "Display color")
+	app.Flag.BoolVar(&app.GlobalFlag.Color, "color", true, "Display color")
+	// Help
+	app.Flag.BoolVar(&app.GlobalFlag.Help, "h", false, "Display help document")
+	app.Flag.BoolVar(&app.GlobalFlag.Help, "help", false, "Display help document")
 }
 
+// AddCommand is add Creating Custom Commands and Menus
 func (app *App) AddCommand(command *Command) (bool, error) {
 	if command.Name == "" {
 		return false, errors.New("command is called empty")
@@ -55,6 +70,19 @@ func (app *App) AddCommand(command *Command) (bool, error) {
 	command.base = app.base
 	app.Commands[command.Name] = command
 	return true, nil
+}
+
+func (app *App) Run() {
+	// initialize the custom command
+	for _, command := range app.Commands {
+		if command.Config != nil {
+			command.Config(command)
+		}
+	}
+	// parse the input parameters
+	app.parse()
+	// handle the application
+	app.handle()
 }
 
 func (app *App) parse() {
@@ -69,7 +97,7 @@ func (app *App) parse() {
 			params = append(params, param)
 		}
 	}
-	err := app.Flag.Parse(params)
+	err := app.Flag.parse(params)
 	if err != nil {
 		fmt.Println(color.Sprint(color.RedText, "Error:"), color.Sprint(color.BlackText, err.Error()))
 		return
@@ -79,14 +107,23 @@ func (app *App) parse() {
 }
 
 func (app *App) handle() {
-	// 是否查看版本
+	// Check the version
 	if app.GlobalFlag.Version {
-		color.Println(color.GreenText, app.Logo)
-		color.Println(color.YellowText, "version: "+app.Version)
-		color.Println(color.YellowText, "info: "+app.Describe)
+		app.showVersion()
+		return
+	}
+	// View the help documents
+	if app.GlobalFlag.Help {
+		app.showHelp()
 		return
 	}
 
+	// Execute the command
+	app.exec()
+	return
+}
+
+func (app *App) exec() {
 	if len(app.Cmd) == 0 {
 		panic("missing command")
 	}
@@ -99,18 +136,16 @@ func (app *App) handle() {
 	} else {
 		panic("command does not exist")
 	}
-	return
 }
 
-func (app *App) Run() {
-	// 初始化配置
-	for _, command := range app.Commands {
-		if command.Config != nil {
-			command.Config(command)
-		}
-	}
-	// 解析输入参数
-	app.parse()
-	// 根据命令执行方法
-	app.handle()
+func (app *App) showHelp() {
+	app.Flag.Set.VisitAll(func(f *flag.Flag) {
+		fmt.Println(f.Name)
+	})
+}
+
+func (app *App) showVersion() {
+	color.Println(color.GreenText, app.Logo)
+	color.Println(color.YellowText, "version: "+app.Version)
+	color.Println(color.YellowText, "info: "+app.Describe)
 }

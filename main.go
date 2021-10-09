@@ -1,7 +1,9 @@
 package main
 
 import (
+	"fmt"
 	"github.com/greatewei/loach/app"
+	"github.com/greatewei/loach/interaction"
 	"github.com/greatewei/loach/progress"
 	"time"
 )
@@ -20,22 +22,27 @@ func main() {
 		app.Describe = "Cli tool"
 	})
 	type Param struct {
-		a string
+		a int
 	}
 	param := &Param{}
 	_, _ = cli.AddCommand(&app.Command{
-		Name:     "test",
-		Describe: "这是一个测试方法",
+		Name:     "prog",
+		Describe: "Just a test order",
 		Fn: func(c *app.Command, args []string) error {
-			prog := progress.NewProgress(30, progress.Bar)
+			// progress
+			prog := progress.NewProgress(30, param.a)
 			for i := 0; i < 30; i++ {
-				time.Sleep(1 * time.Second)
+				time.Sleep(200 * time.Millisecond)
 				prog.AddProgress(1)
 			}
+
+			// interaction
+			ans, _ := interaction.ReadInput("input you name : ")
+			fmt.Print(ans)
 			return nil
 		},
 		Config: func(c *app.Command) {
-			c.Flag.StringVar(&param.a, "param", "param", "this is param")
+			c.Flag.IntVar(&param.a, "type", 0, "progress type")
 		},
 	})
 	cli.Run()

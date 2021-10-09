@@ -6,10 +6,6 @@ import (
 	"os"
 )
 
-func addColor(color int, a string) string {
-	text := fmt.Sprintf("\x1b[0;%dm%v\x1b[0m", color, a)
-	return text
-}
 func Print(color int, a string) {
 	text := addColor(color, a)
 	_, _ = fmt.Fprint(os.Stdout, text)
@@ -33,4 +29,9 @@ func Fprint(color int, w io.Writer, a string) (n int, err error) {
 func Fprintln(color int, w io.Writer, a string) (n int, err error) {
 	text := addColor(color, a)
 	return fmt.Fprintln(w, text)
+}
+
+func addColor(color int, a string) string {
+	text := fmt.Sprintf("\x1b[0;%dm%v\x1b[0m", color, a)
+	return text
 }

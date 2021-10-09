@@ -5,6 +5,7 @@ import (
 	"strconv"
 )
 
+// Progress is progress bar
 type Progress struct {
 	totalProgress   uint
 	currentProgress uint
@@ -14,18 +15,20 @@ type Progress struct {
 	style           StyleChars
 }
 
+// NewProgress is instantiate the progress bar
 func NewProgress(totalProgress uint, style int) *Progress {
-	stype := BarStyles[style]
+	cs := BarStyles[style]
 	return &Progress{
 		totalProgress:   totalProgress,
 		currentProgress: 0,
 		percent:         "0.0%",
-		style:           stype,
+		style:           cs,
 		with:            30,
 		curWith:         0,
 	}
 }
 
+// AddProgress is add progress
 func (prog *Progress) AddProgress(progress uint) {
 	if progress == 0 {
 		return
@@ -39,10 +42,8 @@ func (prog *Progress) AddProgress(progress uint) {
 	prog.Render()
 }
 
+// Render is apply colours to a drawing the picture
 func (prog *Progress) Render() {
-	//fmt.Print(string(prog.style.Completed))
-	//fmt.Print(string(prog.style.Processing))
-	//fmt.Print(string(prog.style.Remaining))
 	text := ""
 	for i := 1; i <= prog.with; i++ {
 		if i < prog.curWith || prog.curWith == prog.with {
@@ -55,5 +56,9 @@ func (prog *Progress) Render() {
 	}
 	text += " " + prog.percent
 	fmt.Print("\x0D\x1B[2K")
-	fmt.Print(text)
+	if prog.curWith == prog.with {
+		fmt.Println(text)
+	} else {
+		fmt.Print(text)
+	}
 }
