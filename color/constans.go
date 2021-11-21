@@ -23,3 +23,7 @@ const (
 	CyanBackground
 	WhiteBackground
 )
+
+const (
+	SpacePlaceholder = " "
+)

@@ -17,13 +17,16 @@ type Progress struct {
 
 // NewProgress is instantiate the progress bar
 func NewProgress(totalProgress uint, style int) *Progress {
+	if style >= len(BarStyles) {
+		style = 0
+	}
 	cs := BarStyles[style]
 	return &Progress{
 		totalProgress:   totalProgress,
 		currentProgress: 0,
 		percent:         "0.0%",
 		style:           cs,
-		with:            30,
+		with:            50,
 		curWith:         0,
 	}
 }

@@ -2,31 +2,24 @@ package app
 
 import (
 	"errors"
-	"flag"
 	"fmt"
 	"github.com/greatewei/loach/color"
 	"os"
 	"strings"
 )
 
-// GlobalFlag is global parameter
-type GlobalFlag struct {
-	Version bool
-	Color   bool
-	Help    bool
-}
-
 // App is global instance
 type App struct {
 	base
-	Name       string
-	Version    string
-	Logo       string
-	Describe   string
-	GlobalFlag *GlobalFlag
-	Args       []string
-	Cmd        []string
-	Commands   map[string]*Command
+	Name          string
+	Version       string
+	Logo          string
+	Describe      string
+	Args          []string
+	Cmd           []string
+	Commands      map[string]*Command
+	commandList   []string
+	globalCommand *Command
 }
 
 // Init is initialize the application
@@ -35,9 +28,8 @@ func Init(fns ...func(app *App)) *App {
 		Commands: map[string]*Command{},
 		Args:     []string{},
 		base: base{
-			Flag: NewFlag(),
+			flag: NewFlag(),
 		},
-		GlobalFlag: &GlobalFlag{},
 	}
 	app.InitGlobalFlag()
 	for _, fn := range fns {
@@ -48,15 +40,17 @@ func Init(fns ...func(app *App)) *App {
 
 // InitGlobalFlag is init global flag
 func (app *App) InitGlobalFlag() {
-	// Version
-	app.Flag.BoolVar(&app.GlobalFlag.Version, "v", false, "Display version")
-	app.Flag.BoolVar(&app.GlobalFlag.Version, "version", false, "Display version")
-	// Color
-	app.Flag.BoolVar(&app.GlobalFlag.Color, "c", true, "Display color")
-	app.Flag.BoolVar(&app.GlobalFlag.Color, "color", true, "Display color")
-	// Help
-	app.Flag.BoolVar(&app.GlobalFlag.Help, "h", false, "Display help document")
-	app.Flag.BoolVar(&app.GlobalFlag.Help, "help", false, "Display help document")
+	app.globalCommand = &Command{
+		base:     app.base,
+		Name:     "global variable",
+		Describe: "global variable",
+		Config: func(c *Command) {
+			c.BoolVar(&Version, "version", false, "show the service version, default false", "v")
+			c.BoolVar(&Help, "help", false, "display help document, default false", "h")
+		},
+	}
+	// 执行初始化
+	app.globalCommand.Config(app.globalCommand)
 }
 
 // AddCommand is add Creating Custom Commands and Menus
@@ -69,6 +63,7 @@ func (app *App) AddCommand(command *Command) (bool, error) {
 	}
 	command.base = app.base
 	app.Commands[command.Name] = command
+	app.commandList = append(app.commandList, command.Name)
 	return true, nil
 }
 
@@ -97,23 +92,23 @@ func (app *App) parse() {
 			params = append(params, param)
 		}
 	}
-	err := app.Flag.parse(params)
+	err := app.flag.parse(params)
 	if err != nil {
 		fmt.Println(color.Sprint(color.RedText, "Error:"), color.Sprint(color.BlackText, err.Error()))
 		return
 	}
-	app.Args = app.Flag.Set.Args()
+	app.Args = app.flag.Set.Args()
 	app.Cmd = cmd
 }
 
 func (app *App) handle() {
 	// Check the version
-	if app.GlobalFlag.Version {
+	if Version {
 		app.showVersion()
 		return
 	}
 	// View the help documents
-	if app.GlobalFlag.Help {
+	if Help {
 		app.showHelp()
 		return
 	}
@@ -129,6 +124,9 @@ func (app *App) exec() {
 	}
 	firCmd := app.Cmd[0]
 	if command, ok := app.Commands[firCmd]; ok {
+		if command.Fn == nil {
+			return
+		}
 		err := command.Fn(command, app.Args)
 		if err != nil {
 			panic(firCmd + " exec failure")
@@ -139,13 +137,38 @@ func (app *App) exec() {
 }
 
 func (app *App) showHelp() {
-	app.Flag.Set.VisitAll(func(f *flag.Flag) {
-		fmt.Println(f.Name)
-	})
+	app.showVersion()
+	app.showUsage()
+	app.showGlobal()
+	app.showCommands()
 }
 
 func (app *App) showVersion() {
 	color.Println(color.GreenText, app.Logo)
 	color.Println(color.YellowText, "version: "+app.Version)
 	color.Println(color.YellowText, "info: "+app.Describe)
+	fmt.Println()
+}
+
+func (app *App) showUsage() {
+	color.Println(color.YellowText, "Usage:")
+	color.Println(color.BlackText, " main [global options...] COMMAND [--options ...] [arguments ...]")
+	fmt.Println()
+}
+
+func (app *App) showGlobal() {
+	color.Println(color.YellowText, "Global Options:")
+	for _, info := range app.globalCommand.flagSet {
+		text := fmt.Sprintf(" -%s, --%-10s %s", info.Alias, info.Name, info.Usage)
+		color.Println(color.GreenText, text)
+	}
+	fmt.Println()
+}
+
+func (app *App) showCommands() {
+	color.Println(color.YellowText, "Custom Command:")
+	for _, commondName := range app.commandList {
+		commond := app.Commands[commondName]
+		commond.ShowFlagSet()
+	}
 }

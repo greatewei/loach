@@ -1,5 +1,10 @@
 package app
 
+var (
+	Version bool
+	Help    bool
+)
+
 type base struct {
-	Flag *Flag
+	flag *Flag
 }

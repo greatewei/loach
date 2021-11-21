@@ -5,6 +5,12 @@ import (
 	"io/ioutil"
 )
 
+type Info struct {
+	Name  string
+	Alias string
+	Usage string
+}
+
 // Flag is flag.Flag manage
 type Flag struct {
 	Set *flag.FlagSet
@@ -29,22 +35,6 @@ func (f *Flag) InitFlagSet() {
 	f.Set.Usage = func() {}
 }
 
-// IntVar is set int flag
-func (f *Flag) IntVar(p *int, name string, value int, usage string) {
-	f.Set.IntVar(p, name, value, usage)
-}
-
-// StringVar is set string flag
-func (f *Flag) StringVar(p *string, name string, value string, usage string) {
-	f.Set.StringVar(p, name, value, usage)
-}
-
-// BoolVar is boolean flag
-func (f *Flag) BoolVar(p *bool, name string, value bool, usage string) {
-	f.Set.BoolVar(p, name, value, usage)
-}
-
 func (f *Flag) parse(args []string) error {
-	err := f.Set.Parse(args)
-	return err
+	return f.Set.Parse(args)
 }

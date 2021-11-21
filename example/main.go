@@ -30,19 +30,19 @@ func main() {
 		Describe: "Just a test order",
 		Fn: func(c *app.Command, args []string) error {
 			// progress
-			prog := progress.NewProgress(30, param.a)
-			for i := 0; i < 30; i++ {
-				time.Sleep(200 * time.Millisecond)
+			prog := progress.NewProgress(100, param.a)
+			for i := 0; i < 100; i++ {
+				time.Sleep(50 * time.Millisecond)
 				prog.AddProgress(1)
 			}
 
 			// interaction
 			ans, _ := interaction.ReadInput("input you name : ")
-			fmt.Print(ans)
+			fmt.Print("hello ", ans)
 			return nil
 		},
 		Config: func(c *app.Command) {
-			c.Flag.IntVar(&param.a, "type", 0, "progress type")
+			c.IntVar(&param.a, "type", 0, "progress type", "")
 		},
 	})
 	cli.Run()
