@@ -35,14 +35,20 @@ func main() {
 				time.Sleep(50 * time.Millisecond)
 				prog.AddProgress(1)
 			}
-
-			// interaction
-			ans, _ := interaction.ReadInput("input you name : ")
-			fmt.Print("hello ", ans)
 			return nil
 		},
 		Config: func(c *app.Command) {
 			c.IntVar(&param.a, "type", 0, "progress type", "")
+		},
+	})
+	_, _ = cli.AddCommand(&app.Command{
+		Name:     "input",
+		Describe: "Input you text",
+		Fn: func(c *app.Command, args []string) error {
+			// interaction
+			ans, _ := interaction.ReadInput("input you name : ")
+			fmt.Print("hello ", ans)
+			return nil
 		},
 	})
 	cli.Run()

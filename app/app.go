@@ -120,7 +120,8 @@ func (app *App) handle() {
 
 func (app *App) exec() {
 	if len(app.Cmd) == 0 {
-		panic("missing command")
+		color.Println(color.RedText, "missing command")
+		os.Exit(1)
 	}
 	firCmd := app.Cmd[0]
 	if command, ok := app.Commands[firCmd]; ok {
@@ -129,10 +130,12 @@ func (app *App) exec() {
 		}
 		err := command.Fn(command, app.Args)
 		if err != nil {
-			panic(firCmd + " exec failure")
+			color.Println(color.RedText, firCmd+" exec failure")
+			os.Exit(1)
 		}
 	} else {
-		panic("command does not exist")
+		color.Println(color.RedText, "command does not exist")
+		os.Exit(1)
 	}
 }
 
