@@ -69,5 +69,5 @@ func main() {
 ```
 
 ## Snapshot
-![](./example/images/20220127155448.jpg)
+<img src="./example/images/20220127155448.jpg" width="600" />
 
