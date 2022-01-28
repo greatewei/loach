@@ -5,6 +5,7 @@ import (
 	"io/ioutil"
 )
 
+// Info is describe every command info
 type Info struct {
 	Name  string
 	Alias string

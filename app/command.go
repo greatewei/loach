@@ -27,6 +27,7 @@ func (c *Command) setFlagSet(name string, usage string, alias string) {
 	c.flagSet = append(c.flagSet, info)
 }
 
+// ShowFlagSet is show flag info
 func (c *Command) ShowFlagSet() {
 	text := c.Name + "  : " + c.Describe + " \n"
 	for _, info := range c.flagSet {
@@ -36,6 +37,7 @@ func (c *Command) ShowFlagSet() {
 	color.Print(color.BlueText, text)
 }
 
+// IntVar is set int params
 func (c *Command) IntVar(p *int, name string, value int, usage string, alias string) {
 	c.flag.Set.IntVar(p, name, value, usage)
 	if alias != "" {
@@ -44,6 +46,7 @@ func (c *Command) IntVar(p *int, name string, value int, usage string, alias str
 	c.setFlagSet(name, usage, alias)
 }
 
+// StringVar is set string params
 func (c *Command) StringVar(p *string, name string, value string, usage string, alias string) {
 	c.flag.Set.StringVar(p, name, value, usage)
 	if alias != "" {
@@ -52,6 +55,7 @@ func (c *Command) StringVar(p *string, name string, value string, usage string, 
 	c.setFlagSet(name, usage, alias)
 }
 
+// BoolVar is set boolean params
 func (c *Command) BoolVar(p *bool, name string, value bool, usage string, alias string) {
 	c.flag.Set.BoolVar(p, name, value, usage)
 	if alias != "" {

@@ -25,5 +25,6 @@ const (
 )
 
 const (
+	// SpacePlaceholder is a symbol
 	SpacePlaceholder = " "
 )

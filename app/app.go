@@ -67,6 +67,7 @@ func (app *App) AddCommand(command *Command) (bool, error) {
 	return true, nil
 }
 
+// Run is start service
 func (app *App) Run() {
 	// initialize the custom command
 	for _, command := range app.Commands {
