@@ -1,0 +1,628 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Fibonacci Sequence Demo</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,700&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg-deep: #0b1c1a;
+      --bg-mid: #12302c;
+      --ink: #e8f2ef;
+      --muted: #9bb5ae;
+      --accent: #e3b23c;
+      --accent-soft: #f0d48a;
+      --tile-a: #1f6f63;
+      --tile-b: #2a8f7f;
+      --tile-c: #3cb8a0;
+      --tile-d: #e3b23c;
+      --panel: rgba(14, 36, 33, 0.72);
+      --line: rgba(232, 242, 239, 0.12);
+      --shadow: 0 24px 60px rgba(0, 0, 0, 0.35);
+      --radius: 14px;
+      --ease: cubic-bezier(0.22, 1, 0.36, 1);
+    }
+
+    * { box-sizing: border-box; }
+
+    html, body {
+      margin: 0;
+      min-height: 100%;
+      color: var(--ink);
+      font-family: "IBM Plex Sans", sans-serif;
+      background:
+        radial-gradient(1200px 700px at 12% -10%, rgba(60, 184, 160, 0.22), transparent 55%),
+        radial-gradient(900px 600px at 90% 10%, rgba(227, 178, 60, 0.16), transparent 50%),
+        linear-gradient(165deg, var(--bg-deep), var(--bg-mid) 48%, #0e241f);
+    }
+
+    body {
+      display: grid;
+      place-items: start center;
+      padding: 32px 20px 48px;
+    }
+
+    .page {
+      width: min(1080px, 100%);
+      display: grid;
+      gap: 22px;
+    }
+
+    header {
+      display: grid;
+      gap: 8px;
+      animation: rise 700ms var(--ease) both;
+    }
+
+    .brand {
+      font-family: "Fraunces", serif;
+      font-size: clamp(2rem, 4vw, 2.8rem);
+      font-weight: 700;
+      letter-spacing: -0.03em;
+      line-height: 1.1;
+      margin: 0;
+    }
+
+    .brand span {
+      color: var(--accent);
+    }
+
+    .lede {
+      margin: 0;
+      max-width: 42rem;
+      color: var(--muted);
+      font-size: 1.05rem;
+      line-height: 1.55;
+    }
+
+    .stage {
+      display: grid;
+      grid-template-columns: 1.35fr 0.9fr;
+      gap: 18px;
+      align-items: stretch;
+      animation: rise 850ms var(--ease) both;
+    }
+
+    @media (max-width: 860px) {
+      .stage { grid-template-columns: 1fr; }
+    }
+
+    .viz, .side {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(10px);
+    }
+
+    .viz {
+      position: relative;
+      min-height: 420px;
+      overflow: hidden;
+      padding: 18px;
+    }
+
+    .viz::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background:
+        linear-gradient(rgba(232, 242, 239, 0.04) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(232, 242, 239, 0.04) 1px, transparent 1px);
+      background-size: 28px 28px;
+      mask-image: radial-gradient(circle at 40% 45%, #000 35%, transparent 78%);
+      pointer-events: none;
+    }
+
+    #spiralCanvas {
+      width: 100%;
+      height: 100%;
+      min-height: 380px;
+      display: block;
+    }
+
+    .side {
+      padding: 18px;
+      display: grid;
+      gap: 16px;
+      align-content: start;
+    }
+
+    .section-label {
+      margin: 0;
+      font-size: 0.75rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--muted);
+      font-weight: 600;
+    }
+
+    .sequence {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      min-height: 3.2rem;
+    }
+
+    .chip {
+      font-variant-numeric: tabular-nums;
+      padding: 0.35rem 0.7rem;
+      border-radius: 999px;
+      border: 1px solid var(--line);
+      background: rgba(255, 255, 255, 0.04);
+      color: var(--ink);
+      font-weight: 500;
+      opacity: 0;
+      transform: translateY(8px) scale(0.96);
+      animation: chip-in 420ms var(--ease) forwards;
+    }
+
+    .chip.latest {
+      border-color: rgba(227, 178, 60, 0.55);
+      background: rgba(227, 178, 60, 0.16);
+      color: var(--accent-soft);
+      box-shadow: 0 0 0 1px rgba(227, 178, 60, 0.12);
+    }
+
+    .formula {
+      font-family: "Fraunces", serif;
+      font-size: 1.25rem;
+      margin: 0;
+      min-height: 2.2em;
+      color: var(--accent-soft);
+    }
+
+    .formula .dim { color: var(--muted); font-weight: 500; }
+
+    .bars {
+      display: grid;
+      gap: 8px;
+      align-content: end;
+      min-height: 160px;
+    }
+
+    .bar-row {
+      display: grid;
+      grid-template-columns: 2.2rem 1fr 3.5rem;
+      gap: 8px;
+      align-items: center;
+      opacity: 0;
+      transform: translateX(-8px);
+      animation: chip-in 420ms var(--ease) forwards;
+    }
+
+    .bar-row .idx {
+      color: var(--muted);
+      font-size: 0.8rem;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .bar-track {
+      height: 10px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.06);
+      overflow: hidden;
+    }
+
+    .bar-fill {
+      height: 100%;
+      width: 0;
+      border-radius: inherit;
+      background: linear-gradient(90deg, var(--tile-a), var(--accent));
+      transition: width 480ms var(--ease);
+    }
+
+    .bar-row .val {
+      text-align: right;
+      font-variant-numeric: tabular-nums;
+      font-size: 0.9rem;
+      color: var(--ink);
+    }
+
+    .controls {
+      display: grid;
+      gap: 12px;
+      padding-top: 4px;
+      border-top: 1px solid var(--line);
+    }
+
+    .buttons {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    button {
+      appearance: none;
+      border: 1px solid var(--line);
+      background: rgba(255, 255, 255, 0.05);
+      color: var(--ink);
+      font: inherit;
+      font-weight: 600;
+      padding: 0.65rem 1rem;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: transform 160ms var(--ease), background 160ms var(--ease), border-color 160ms var(--ease);
+    }
+
+    button:hover {
+      transform: translateY(-1px);
+      background: rgba(255, 255, 255, 0.09);
+      border-color: rgba(232, 242, 239, 0.22);
+    }
+
+    button.primary {
+      background: linear-gradient(135deg, #2f9b88, #1f6f63);
+      border-color: rgba(60, 184, 160, 0.45);
+    }
+
+    button.primary:hover {
+      background: linear-gradient(135deg, #36ad98, #248074);
+    }
+
+    .speed {
+      display: grid;
+      gap: 8px;
+    }
+
+    .speed-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      color: var(--muted);
+      font-size: 0.9rem;
+    }
+
+    input[type="range"] {
+      width: 100%;
+      accent-color: var(--accent);
+    }
+
+    .hint {
+      margin: 0;
+      color: var(--muted);
+      font-size: 0.85rem;
+      line-height: 1.45;
+    }
+
+    footer {
+      color: var(--muted);
+      font-size: 0.85rem;
+      animation: rise 1000ms var(--ease) both;
+    }
+
+    footer a { color: var(--accent-soft); }
+
+    @keyframes rise {
+      from { opacity: 0; transform: translateY(14px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes chip-in {
+      to { opacity: 1; transform: none; }
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <header>
+      <h1 class="brand">Fibonacci <span>Spiral</span></h1>
+      <p class="lede">
+        Watch each term appear as F<sub>n</sub> = F<sub>n−1</sub> + F<sub>n−2</sub>,
+        while squares grow into the classic spiral tiling.
+      </p>
+    </header>
+
+    <section class="stage" aria-label="Fibonacci animation">
+      <div class="viz" aria-hidden="true">
+        <canvas id="spiralCanvas" width="720" height="520"></canvas>
+      </div>
+
+      <aside class="side">
+        <p class="section-label">Sequence</p>
+        <div id="sequence" class="sequence" aria-live="polite"></div>
+
+        <p class="section-label">Current step</p>
+        <p id="formula" class="formula"><span class="dim">Press play to generate terms</span></p>
+
+        <p class="section-label">Relative magnitude</p>
+        <div id="bars" class="bars" aria-hidden="true"></div>
+
+        <div class="controls">
+          <div class="buttons">
+            <button id="playBtn" class="primary" type="button">Play</button>
+            <button id="resetBtn" type="button">Reset</button>
+          </div>
+          <div class="speed">
+            <div class="speed-row">
+              <label for="speed">Speed</label>
+              <span id="speedLabel">1.0×</span>
+            </div>
+            <input id="speed" type="range" min="0.4" max="2.4" step="0.1" value="1" />
+          </div>
+          <p class="hint">Play / pause the generation, tweak the pace, or reset to start over. Works offline as a static file.</p>
+        </div>
+      </aside>
+    </section>
+
+    <footer>
+      Static demo under <code>example/fibonacci/</code> — open <code>index.html</code> in a browser (no server required).
+    </footer>
+  </div>
+
+  <script>
+    (function () {
+      const MAX_TERMS = 12;
+      const TILE_COLORS = [
+        "#1f6f63", "#2a8f7f", "#3cb8a0", "#58c4a8",
+        "#e3b23c", "#d49a2a", "#c9841f", "#b56f18",
+        "#2f8578", "#46a894", "#6fd0b0", "#f0d48a"
+      ];
+
+      const sequenceEl = document.getElementById("sequence");
+      const formulaEl = document.getElementById("formula");
+      const barsEl = document.getElementById("bars");
+      const playBtn = document.getElementById("playBtn");
+      const resetBtn = document.getElementById("resetBtn");
+      const speedInput = document.getElementById("speed");
+      const speedLabel = document.getElementById("speedLabel");
+      const canvas = document.getElementById("spiralCanvas");
+      const ctx = canvas.getContext("2d");
+
+      let terms = [];
+      let timer = null;
+      let playing = false;
+      let speed = 1;
+
+      function fib(n) {
+        if (n <= 1) return n;
+        let a = 0, b = 1;
+        for (let i = 2; i <= n; i++) {
+          const next = a + b;
+          a = b;
+          b = next;
+        }
+        return b;
+      }
+
+      function baseDelay() {
+        return Math.round(780 / speed);
+      }
+
+      function setPlaying(next) {
+        playing = next;
+        playBtn.textContent = playing ? "Pause" : "Play";
+        if (playing) {
+          scheduleNext();
+        } else if (timer) {
+          clearTimeout(timer);
+          timer = null;
+        }
+      }
+
+      function scheduleNext() {
+        if (timer) clearTimeout(timer);
+        if (!playing) return;
+        if (terms.length >= MAX_TERMS) {
+          setPlaying(false);
+          formulaEl.innerHTML = '<span class="dim">Sequence complete — reset to replay</span>';
+          return;
+        }
+        timer = setTimeout(stepOnce, baseDelay());
+      }
+
+      function stepOnce() {
+        const n = terms.length;
+        const value = fib(n);
+        terms.push(value);
+        renderSequence();
+        renderFormula(n, value);
+        renderBars();
+        drawSpiral();
+        scheduleNext();
+      }
+
+      function renderSequence() {
+        sequenceEl.innerHTML = "";
+        terms.forEach((value, i) => {
+          const chip = document.createElement("span");
+          chip.className = "chip" + (i === terms.length - 1 ? " latest" : "");
+          chip.style.animationDelay = "0ms";
+          chip.textContent = String(value);
+          sequenceEl.appendChild(chip);
+        });
+      }
+
+      function renderFormula(n, value) {
+        if (n === 0) {
+          formulaEl.innerHTML = "F<sub>0</sub> = <strong>0</strong>";
+          return;
+        }
+        if (n === 1) {
+          formulaEl.innerHTML = "F<sub>1</sub> = <strong>1</strong>";
+          return;
+        }
+        const a = terms[n - 2];
+        const b = terms[n - 1];
+        formulaEl.innerHTML =
+          "F<sub>" + n + "</sub> = " + a + " + " + b + " = <strong>" + value + "</strong>";
+      }
+
+      function renderBars() {
+        barsEl.innerHTML = "";
+        if (!terms.length) return;
+        const max = Math.max(...terms, 1);
+        const start = Math.max(0, terms.length - 6);
+        for (let i = start; i < terms.length; i++) {
+          const row = document.createElement("div");
+          row.className = "bar-row";
+          row.style.animationDelay = ((i - start) * 40) + "ms";
+          const pct = Math.max(4, (terms[i] / max) * 100);
+          row.innerHTML =
+            '<span class="idx">F' + i + '</span>' +
+            '<div class="bar-track"><div class="bar-fill" style="width:0%"></div></div>' +
+            '<span class="val">' + terms[i] + "</span>";
+          barsEl.appendChild(row);
+          const fill = row.querySelector(".bar-fill");
+          requestAnimationFrame(() => {
+            fill.style.width = pct + "%";
+          });
+        }
+      }
+
+      function layoutSquares() {
+        // Classic Fibonacci tiling (positive terms only; skip F0 = 0).
+        // After the first square, place east → north → west → south.
+        const squares = [];
+        let minX = 0, minY = 0, maxX = 0, maxY = 0;
+
+        for (let i = 0; i < terms.length; i++) {
+          const s = terms[i];
+          if (s <= 0) continue;
+
+          let sx = 0;
+          let sy = 0;
+          const k = squares.length;
+
+          if (k === 0) {
+            sx = 0;
+            sy = 0;
+          } else {
+            const last = squares[k - 1];
+            const turn = (k - 1) % 4;
+            if (turn === 0) {
+              // east of previous
+              sx = last.x + last.s;
+              sy = last.y;
+            } else if (turn === 1) {
+              // north, spanning previous edge
+              sx = last.x + last.s - s;
+              sy = last.y - s;
+            } else if (turn === 2) {
+              // west
+              sx = last.x - s;
+              sy = last.y + last.s - s;
+            } else {
+              // south
+              sx = last.x;
+              sy = last.y + last.s;
+            }
+          }
+
+          squares.push({ x: sx, y: sy, s: s, index: i });
+          minX = Math.min(minX, sx);
+          minY = Math.min(minY, sy);
+          maxX = Math.max(maxX, sx + s);
+          maxY = Math.max(maxY, sy + s);
+        }
+
+        return { squares, minX, minY, maxX, maxY };
+      }
+
+      function drawSpiral() {
+        const dpr = window.devicePixelRatio || 1;
+        const cssW = canvas.clientWidth;
+        const cssH = canvas.clientHeight;
+        canvas.width = Math.floor(cssW * dpr);
+        canvas.height = Math.floor(cssH * dpr);
+        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+        ctx.clearRect(0, 0, cssW, cssH);
+
+        if (!terms.length) {
+          ctx.fillStyle = "rgba(155, 181, 174, 0.55)";
+          ctx.font = '500 16px "IBM Plex Sans", "Segoe UI", sans-serif';
+          ctx.fillText("Squares will grow here…", 24, 36);
+          return;
+        }
+
+        const { squares, minX, minY, maxX, maxY } = layoutSquares();
+        if (!squares.length) return;
+
+        const pad = 28;
+        const worldW = maxX - minX;
+        const worldH = maxY - minY;
+        const scale = Math.min(
+          (cssW - pad * 2) / Math.max(worldW, 1),
+          (cssH - pad * 2) / Math.max(worldH, 1)
+        );
+        const ox = (cssW - worldW * scale) / 2 - minX * scale;
+        const oy = (cssH - worldH * scale) / 2 - minY * scale;
+
+        squares.forEach((sq, i) => {
+          const px = ox + sq.x * scale;
+          const py = oy + sq.y * scale;
+          const size = sq.s * scale;
+          const color = TILE_COLORS[sq.index % TILE_COLORS.length];
+
+          ctx.fillStyle = color;
+          ctx.globalAlpha = 0.9;
+          ctx.fillRect(px, py, size, size);
+          ctx.globalAlpha = 1;
+          ctx.strokeStyle = "rgba(11, 28, 26, 0.55)";
+          ctx.lineWidth = 1.5;
+          ctx.strokeRect(px, py, size, size);
+
+          if (size > 28) {
+            ctx.fillStyle = "rgba(11, 28, 26, 0.78)";
+            ctx.font = '600 ' + Math.max(11, Math.min(22, size * 0.28)) + 'px "Fraunces", Georgia, serif';
+            ctx.textAlign = "center";
+            ctx.textBaseline = "middle";
+            ctx.fillText(String(sq.s), px + size / 2, py + size / 2);
+          }
+
+          ctx.beginPath();
+          ctx.strokeStyle = "rgba(240, 212, 138, 0.9)";
+          ctx.lineWidth = Math.max(1.5, Math.min(3, size * 0.045));
+          const turn = i % 4;
+          if (turn === 0) {
+            ctx.arc(px, py + size, size, -Math.PI / 2, 0);
+          } else if (turn === 1) {
+            ctx.arc(px + size, py + size, size, Math.PI, -Math.PI / 2, false);
+          } else if (turn === 2) {
+            ctx.arc(px + size, py, size, Math.PI / 2, Math.PI);
+          } else {
+            ctx.arc(px, py, size, 0, Math.PI / 2);
+          }
+          ctx.stroke();
+        });
+      }
+
+      function reset() {
+        if (timer) clearTimeout(timer);
+        timer = null;
+        terms = [];
+        playing = false;
+        playBtn.textContent = "Play";
+        sequenceEl.innerHTML = "";
+        barsEl.innerHTML = "";
+        formulaEl.innerHTML = '<span class="dim">Press play to generate terms</span>';
+        drawSpiral();
+      }
+
+      playBtn.addEventListener("click", () => {
+        if (terms.length >= MAX_TERMS && !playing) {
+          reset();
+        }
+        setPlaying(!playing);
+      });
+
+      resetBtn.addEventListener("click", () => {
+        reset();
+      });
+
+      speedInput.addEventListener("input", () => {
+        speed = Number(speedInput.value);
+        speedLabel.textContent = speed.toFixed(1) + "×";
+        if (playing) scheduleNext();
+      });
+
+      window.addEventListener("resize", () => drawSpiral());
+
+      reset();
+    })();
+  </script>
+</body>
+</html>

@@ -115,6 +115,8 @@ Build all packages:
 go build ./...
 ```
 
+Fibonacci animation demo (static HTML, no build step): open [`example/fibonacci/index.html`](./example/fibonacci/index.html) in a browser.
+
 There are currently no automated tests in this repository.
 
 ## Project structure
@@ -125,6 +127,7 @@ color/         ANSI color helpers for terminal output
 interaction/   Simple stdin prompts
 progress/      Progress bar rendering and styles
 example/       Demo CLI (same flow as Quick start)
+example/fibonacci/  Static Fibonacci sequence animation page
 ```
 
 ## Snapshot
