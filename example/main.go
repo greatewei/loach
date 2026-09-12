@@ -2,10 +2,12 @@ package main
 
 import (
 	"fmt"
+	"time"
+
 	"github.com/greatewei/loach/app"
+	"github.com/greatewei/loach/color"
 	"github.com/greatewei/loach/interaction"
 	"github.com/greatewei/loach/progress"
-	"time"
 )
 
 func main() {
@@ -48,6 +50,29 @@ func main() {
 			// interaction
 			ans, _ := interaction.ReadInput("input you name : ")
 			fmt.Print("hello ", ans)
+			return nil
+		},
+	})
+	_, _ = cli.AddCommand(&app.Command{
+		Name:     "color",
+		Describe: "Demo preset and custom font colors",
+		Fn: func(c *app.Command, args []string) error {
+			color.Println(color.GreenText, "preset green")
+
+			orange := color.RGB(255, 128, 0)
+			orange.Println("custom RGB orange")
+
+			teal, err := color.Hex("#008080")
+			if err != nil {
+				return err
+			}
+			color.PrintlnCustom(teal, "custom hex teal")
+
+			_ = color.Register("brand", color.MustHex("#6C5CE7"))
+			if brand, ok := color.Lookup("brand"); ok {
+				brand.Println("named custom brand color")
+				color.MustHex("#FFEAA7").Background().Println(" custom background ")
+			}
 			return nil
 		},
 	})
