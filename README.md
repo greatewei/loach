@@ -9,7 +9,7 @@ Requires **Go 1.17+** (see `go.mod`).
 ## Features
 
 - Custom commands with flags (`app`)
-- Colored terminal output (`color`)
+- Colored terminal output (`color`), including 24-bit custom font colors (RGB / hex / named)
 - Interactive prompts (`interaction`)
 - Multiple progress bar styles (`progress`)
 
@@ -92,6 +92,25 @@ Global flags provided by `app`: `-h` / `--help`, `-v` / `--version`.
 
 Progress styles are `progress.Type0` … `progress.Type8` (pass the int to `progress.NewProgress`).
 
+### Custom font colors
+
+Preset ANSI colors (`color.RedText`, `color.GreenText`, …) still work with `Print` / `Println` / `Sprint`.
+
+For user-defined colors, use 24-bit truecolor helpers:
+
+```go
+import "github.com/greatewei/loach/color"
+
+color.RGB(255, 128, 0).Println("orange")
+c, _ := color.Hex("#008080")
+color.PrintlnCustom(c, "teal")
+
+_ = color.Register("brand", color.MustHex("#6C5CE7"))
+if brand, ok := color.Lookup("brand"); ok {
+	brand.Println("named brand color")
+}
+```
+
 ## Example
 
 A runnable sample lives in [`example/`](./example):
@@ -101,6 +120,7 @@ A runnable sample lives in [`example/`](./example):
 go run ./example -h
 go run ./example prog --type 5
 go run ./example input
+go run ./example color
 ```
 
 Build the example binary:
@@ -115,13 +135,17 @@ Build all packages:
 go build ./...
 ```
 
-There are currently no automated tests in this repository.
+Run color package tests:
+
+```bash
+go test ./color
+```
 
 ## Project structure
 
 ```text
 app/           CLI app, commands, and flags
-color/         ANSI color helpers for terminal output
+color/         ANSI + custom (RGB/hex/named) color helpers
 interaction/   Simple stdin prompts
 progress/      Progress bar rendering and styles
 example/       Demo CLI (same flow as Quick start)
